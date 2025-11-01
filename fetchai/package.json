@@ -18,6 +18,9 @@
     "vite": "^6.0.3"
   },
   "dependencies": {
+    "@supabase/auth-ui-react": "^0.4.7",
+    "@supabase/auth-ui-shared": "^0.1.8",
+    "@supabase/supabase-js": "^2.78.0",
     "@tanstack/react-router": "^1.134.4",
     "@tanstack/router-devtools": "^1.134.4",
     "react": "^19.0.0",
