@@ -1,13 +1,16 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { Auth } from '@supabase/auth-ui-react'
-import { supabase } from '../lib/supabase'
+import { supabase } from '../lib/supabase' // Assuming path is correct
 import { useEffect } from 'react'
 
+// 1. Change route path
 export const Route = createFileRoute('/signup')({
-  component: Signup,
+  // 2. Change component name
+  component: SignUp,
 })
 
-function Signup() {
+// 3. Change function name
+function SignUp() {
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -39,13 +42,8 @@ function Signup() {
           },
         }}
         view="sign_up"
+        providers={[]}
       />
-      <p className="text-center mt-4">
-        Already have an account?{' '}
-        <Link to="/login" className="text-blue-500">
-          Login
-        </Link>
-      </p>
     </div>
   )
 }

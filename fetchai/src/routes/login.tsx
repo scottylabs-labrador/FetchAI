@@ -39,13 +39,8 @@ function Login() {
           },
         }}
         view="sign_in"
+        providers={[]}
       />
-      <p className="text-center mt-4">
-        Don't have an account?{' '}
-        <Link to="/signup" className="text-blue-500">
-          Sign up
-        </Link>
-      </p>
     </div>
   )
 }
