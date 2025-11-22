@@ -29,6 +29,14 @@ function RootComponent() {
                   Home
                 </Link>
                 <Link
+                  to="/about"
+                  activeProps={{
+                    className: 'active',
+                  }}
+                >
+                  About
+                </Link>
+                <Link
                   to="/profile"
                   activeProps={{
                     className: 'active',
