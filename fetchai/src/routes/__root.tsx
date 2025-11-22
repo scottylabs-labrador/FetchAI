@@ -44,6 +44,14 @@ function RootComponent() {
                 >
                   Profile
                 </Link>
+                <Link
+                  to="/Events"
+                  activeProps={{
+                    className: 'active',
+                  }}
+                >
+                  Events
+                </Link>
               </>
             ) : (
               <Link
