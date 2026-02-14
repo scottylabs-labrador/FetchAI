@@ -7,6 +7,8 @@ export interface CMUEvent {
     location: string
     eventType: string
     speaker: string
+    source: string
+    aiSummary?: string
 }
 
 /**
@@ -65,6 +67,7 @@ export async function fetchCMUEvents(): Promise<CMUEvent[]> {
             location: getTagText(item, 'xCal:location'),
             eventType: getCustomField(item, 'Event Type') || 'Event',
             speaker: getCustomField(item, "Speaker's Name"),
+            source: 'scs',
         })
     })
 

@@ -1,23 +1,26 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { fetchCMUEvents, type CMUEvent } from '../lib/rss'
 import { summarizeEvents } from '../lib/ai'
+import { scrapeHTMLEvents } from '../lib/scraper'
+import { SOURCE_MAP } from '../lib/sources'
 
-export interface EnrichedEvent extends CMUEvent {
-    aiSummary?: string
+// Simple in-memory cache keyed by sorted source IDs
+const cache = new Map<string, CMUEvent[]>()
+
+function cacheKey(sources: string[]): string {
+    return [...sources].sort().join(',')
 }
 
-// Simple in-memory cache
-let cachedEvents: EnrichedEvent[] | null = null
-
-export function useEvents() {
-    const [events, setEvents] = useState<EnrichedEvent[]>(cachedEvents ?? [])
-    const [loading, setLoading] = useState(!cachedEvents)
+export function useEvents(selectedSources: string[]) {
+    const key = cacheKey(selectedSources)
+    const [events, setEvents] = useState<CMUEvent[]>(cache.get(key) ?? [])
+    const [loading, setLoading] = useState(!cache.has(key))
     const [error, setError] = useState<string | null>(null)
-    const fetchedRef = useRef(false)
+    const fetchedKeyRef = useRef<string | null>(null)
 
-    const load = async () => {
-        if (cachedEvents) {
-            setEvents(cachedEvents)
+    const load = useCallback(async () => {
+        if (cache.has(key)) {
+            setEvents(cache.get(key)!)
             setLoading(false)
             return
         }
@@ -26,39 +29,60 @@ export function useEvents() {
         setError(null)
 
         try {
-            // 1. Fetch events from RSS
-            const rawEvents = await fetchCMUEvents()
+            // Fetch from all selected sources in parallel
+            const promises = selectedSources.map(async (sourceId) => {
+                const source = SOURCE_MAP.get(sourceId)
+                if (!source) return []
 
-            // Show events immediately while AI processes
-            setEvents(rawEvents)
+                if (source.type === 'rss') {
+                    return fetchCMUEvents()
+                } else {
+                    return scrapeHTMLEvents(source.proxyPath, source.id, source.shortName)
+                }
+            })
+
+            const results = await Promise.allSettled(promises)
+            const allEvents: CMUEvent[] = []
+
+            results.forEach((result) => {
+                if (result.status === 'fulfilled') {
+                    allEvents.push(...result.value)
+                }
+            })
+
+            // Show events immediately
+            setEvents(allEvents)
             setLoading(false)
 
-            // 2. Summarize with AI (non-blocking)
-            const summaries = await summarizeEvents(rawEvents)
-
-            const enriched = rawEvents.map((e) => ({
-                ...e,
-                aiSummary: summaries.get(e.title) ?? undefined,
-            }))
-
-            cachedEvents = enriched
-            setEvents(enriched)
+            // AI summarize in background (only for events without aiSummary)
+            const unsummarized = allEvents.filter((e) => !e.aiSummary)
+            if (unsummarized.length > 0) {
+                const summaries = await summarizeEvents(unsummarized)
+                const enriched = allEvents.map((e) => ({
+                    ...e,
+                    aiSummary: e.aiSummary || summaries.get(e.title) || undefined,
+                }))
+                cache.set(key, enriched)
+                setEvents(enriched)
+            } else {
+                cache.set(key, allEvents)
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load events')
             setLoading(false)
         }
-    }
+    }, [key, selectedSources])
 
     useEffect(() => {
-        if (!fetchedRef.current) {
-            fetchedRef.current = true
+        if (fetchedKeyRef.current !== key) {
+            fetchedKeyRef.current = key
             load()
         }
-    }, [])
+    }, [key, load])
 
     const retry = () => {
-        fetchedRef.current = false
-        cachedEvents = null
+        cache.delete(key)
+        fetchedKeyRef.current = null
         load()
     }
 
