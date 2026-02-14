@@ -24,18 +24,27 @@ function Profile() {
   }
 
   return (
-    <div className="form-container">
-      <h2>User Profile</h2>
-      {user && (
-        <div>
-          <p>
-            <strong>Email:</strong> {user.email}
-          </p>
+    <div className="page">
+      <div className="page-hero">
+        <h1 className="page-title">Profile</h1>
+      </div>
+
+      <div className="section">
+        <div className="profile-card">
+          {user && (
+            <div className="profile-info">
+              <div className="profile-avatar">{user.email?.charAt(0).toUpperCase()}</div>
+              <div>
+                <p className="profile-label">Email</p>
+                <p className="profile-value">{user.email}</p>
+              </div>
+            </div>
+          )}
+          <button onClick={handleLogout} className="btn-secondary">
+            Sign out
+          </button>
         </div>
-      )}
-      <button onClick={handleLogout} className="mt-4">
-        Logout
-      </button>
+      </div>
     </div>
   )
 }

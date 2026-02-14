@@ -1,15 +1,12 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { Auth } from '@supabase/auth-ui-react'
-import { supabase } from '../lib/supabase' // Assuming path is correct
+import { supabase } from '../lib/supabase'
 import { useEffect } from 'react'
 
-// 1. Change route path
 export const Route = createFileRoute('/signup')({
-  // 2. Change component name
   component: SignUp,
 })
 
-// 3. Change function name
 function SignUp() {
   const navigate = useNavigate()
 
@@ -28,22 +25,65 @@ function SignUp() {
   }, [navigate])
 
   return (
-    <div className="form-container">
-      <Auth
-        supabaseClient={supabase}
-        appearance={{
-          style: {
-            button: {
-              background: '#007bff',
-              color: 'white',
-              borderColor: '#007bff',
+    <div className="auth-page">
+      <div className="auth-card">
+        <div className="auth-header">
+          <h1 className="auth-logo">FetchAI</h1>
+          <p className="auth-subtitle">Create your account</p>
+        </div>
+        <Auth
+          supabaseClient={supabase}
+          appearance={{
+            style: {
+              button: {
+                background: '#18181b',
+                color: '#fafafa',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '10px 16px',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'opacity 0.2s ease',
+              },
+              input: {
+                background: '#fafafa',
+                border: '1px solid #e4e4e7',
+                borderRadius: '8px',
+                padding: '10px 14px',
+                fontSize: '14px',
+                color: '#18181b',
+                outline: 'none',
+                transition: 'border-color 0.2s ease',
+              },
+              label: {
+                color: '#52525b',
+                fontSize: '13px',
+                fontWeight: '500',
+                marginBottom: '4px',
+              },
+              anchor: {
+                display: 'none',
+              },
+              container: {
+                gap: '4px',
+              },
+              message: {
+                fontSize: '13px',
+                color: '#ef4444',
+              },
             },
-            anchor: { color: '#007bff' },
-          },
-        }}
-        view="sign_up"
-        providers={[]}
-      />
+          }}
+          view="sign_up"
+          providers={[]}
+        />
+        <p className="auth-footer">
+          Already have an account?{' '}
+          <Link to="/login" className="auth-link">
+            Sign in
+          </Link>
+        </p>
+      </div>
     </div>
   )
 }
