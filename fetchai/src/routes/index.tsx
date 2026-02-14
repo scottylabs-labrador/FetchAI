@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { supabase } from '../lib/supabase'
+import { useEvents } from '../hooks/useEvents'
 
 export const Route = createFileRoute('/')({
   beforeLoad: async () => {
@@ -13,68 +14,111 @@ export const Route = createFileRoute('/')({
   component: HomeComponent,
 })
 
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return ''
+  try {
+    const d = new Date(dateStr)
+    return d.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    })
+  } catch {
+    return ''
+  }
+}
+
 function HomeComponent() {
+  const { events, loading, error, retry } = useEvents()
+
   return (
     <div className="page">
       {/* Hero */}
       <div className="page-hero">
         <h1 className="page-title">Bulletin Board</h1>
         <p className="page-description">
-          One-liner information about the bulletin board
+          Live events from the CMU School of Computer Science
         </p>
       </div>
 
-      {/* Cards */}
+      {/* Content */}
       <div className="section">
-        <h2 className="section-title">Summary of Info</h2>
-        <div className="card-grid">
-          {[
-            {
-              title: 'Information about Event 1',
-              summary: 'Summary or description.',
-              tag: 'Technology',
-            },
-            {
-              title: 'Information about Event 2',
-              summary: 'Summary or description.',
-              tag: 'Clubs',
-            },
-            {
-              title: 'Information about Event 3',
-              summary: 'Summary or description.',
-              tag: 'Events',
-            },
-            {
-              title: 'Information about Event 4',
-              summary: 'Summary or description.',
-              tag: 'Opportunities',
-            },
-            {
-              title: 'Information about Event 5',
-              summary: 'Summary or description.',
-              tag: 'Research',
-            },
-            {
-              title: 'Information about Event 6',
-              summary: 'Summary or description.',
-              tag: 'Community',
-            },
-          ].map((post, i) => (
-            <div key={i} className="card">
-              <div>
-                <span className="card-tag">{post.tag}</span>
-                <h3 className="card-title">{post.title}</h3>
-                <p className="card-text">{post.summary}</p>
-              </div>
-              <button className="card-link">Read more →</button>
+        {loading && (
+          <div className="loading-state">
+            <div className="loading-spinner"></div>
+            <p className="loading-text">Fetching events...</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="error-state">
+            <p className="error-text">{error}</p>
+            <button onClick={retry} className="btn-secondary">
+              Try again
+            </button>
+          </div>
+        )}
+
+        {!loading && !error && events.length === 0 && (
+          <p className="empty-text">No upcoming events found.</p>
+        )}
+
+        {!loading && events.length > 0 && (
+          <>
+            <h2 className="section-title">
+              {events.length} upcoming event{events.length !== 1 ? 's' : ''}
+            </h2>
+            <div className="card-grid">
+              {events.map((event, i) => (
+                <div key={i} className="card">
+                  <div>
+                    <span className="card-tag">{event.eventType}</span>
+                    <h3 className="card-title">{event.title}</h3>
+                    {event.startDate && (
+                      <p className="card-date">{formatDate(event.startDate)}</p>
+                    )}
+                    <p className="card-text">
+                      {event.aiSummary ||
+                        event.description.slice(0, 150) +
+                        (event.description.length > 150 ? '...' : '')}
+                    </p>
+                    {event.speaker && (
+                      <p className="card-speaker">🎤 {event.speaker}</p>
+                    )}
+                  </div>
+                  {event.link && (
+                    <a
+                      href={event.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="card-link"
+                    >
+                      Read more →
+                    </a>
+                  )}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </>
+        )}
       </div>
 
       {/* Footer */}
       <footer className="page-footer">
-        <p>© {new Date().getFullYear()} FetchAI. All rights reserved.</p>
+        <p>
+          Data from{' '}
+          <a
+            href="https://www.cs.cmu.edu/calendar/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="auth-link"
+          >
+            CMU SCS Calendar
+          </a>
+          {' · '}© {new Date().getFullYear()} FetchAI
+        </p>
       </footer>
     </div>
   )

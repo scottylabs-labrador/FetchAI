@@ -11,4 +11,13 @@ export default defineConfig({
     }),
     react(),
   ],
+  server: {
+    proxy: {
+      '/api/cmu-scs-rss': {
+        target: 'https://www.cs.cmu.edu',
+        changeOrigin: true,
+        rewrite: (path) => '/calendar/feed/rss.xml',
+      },
+    },
+  },
 })

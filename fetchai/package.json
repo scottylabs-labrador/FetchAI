@@ -21,6 +21,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.78.0",
     "@tanstack/react-router": "^1.134.4",
+    "@tanstack/router-devtools": "^1.159.10",
     "ical.js": "^2.2.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
